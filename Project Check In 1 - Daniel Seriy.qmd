@@ -1,0 +1,115 @@
+---
+title: "DACSS 603 - Final Project Check-In #1"
+author: "Daniel Seriy"
+format: 
+  html: 
+    embed-resources: true
+    self-contained-math: true
+---
+
+Read in all necessary packages required for the below code.
+
+```{r, echo=T}
+
+library(tidytuesdayR)
+library(tidyverse)
+library(ggplot2)
+library(stats)
+library(dplyr)
+
+```
+
+# Read In Data
+
+This Data has been pulled from the [tidytuesday Github](https://github.com/rfordatascience/tidytuesday). The ['Energy' data set](https://github.com/rfordatascience/tidytuesday/blob/master/data/2023/2023-06-06/readme.md) is maintained by [Our World in Data](https://ourworldindata.org/energy), and includes data concerning various relevant energy metrics.
+
+```{r, echo=T}
+
+data <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-06-06/owid-energy.csv')
+
+
+```
+
+# Research Question
+
+Question: Are countries effective at using their gdp per capita in order to optimize the consumption and generation of renewable energy?
+
+i.e: through the calculation of a "score" taking into account gdp per capita and renewable energy consumption/generation, does do countries with higher gdp per capita have better utilization of renewable energy sources?
+
+# Hypothesis
+
+The hypothesis are the following:
+
+H~0~: ∆\~gdp per capita\~ = ∆~consumption~\
+H~A~: ∆\~gdp per capita\~ ≠ ∆~consumption~
+
+# Descriptive Statistics
+
+```{r, echo=T}
+
+glimpse(data)
+
+```
+
+The data set has 129 variables over 890 observations. In this analysis, we will be examining the below 17 variables.
+
+In order to clean this data set, I have selected all necessary variable, created a new variable, gdp_per_capita, and omitted all observations that contained NA in either the gdp or gdp_per_capita variable, as to remove all observations that would not be able to provide us with a regression over the gdp_per_capita (this will be needed in the analysis an visualization).
+
+```{r, echo=T}
+
+data1 <- data %>%
+  select(country, year, population, gdp, hydro_consumption, hydro_electricity, nuclear_consumption, nuclear_electricity, other_renewable_consumption, other_renewable_electricity, renewables_consumption, renewables_electricity, solar_consumption, solar_electricity, wind_consumption, wind_electricity) %>%
+  mutate(gdp_per_capita = gdp/population) %>%
+  relocate(gdp_per_capita, .after = gdp) %>%
+  drop_na(gdp, gdp_per_capita)
+
+```
+
+The goal of this analysis will be to create a renewable consumption/generation score for each country. each visualization/analysis will contain a slice representing the whole amount of renewable energy consumption/generation per country, further sliced to represent each renewable source. These slices will be created through a linear regression for each variable. From there, I will present a linear regression of the gdp per capita of that country. This will resemble the graph presented below. (the below graph is just a representation of the final project)
+
+```{r, echo=T}
+
+example <- ggplot() +
+  xlim(c(0,50)) +
+  geom_function(fun = function(x) 2*x) +
+  geom_function(fun = function(x) x) +
+  geom_function(fun = function(x) 0.5*x) +
+  labs(y = NULL) +
+  theme_bw()
+
+```
+
+```{r, echo=T}
+
+example
+
+```
+
+The area between y = 2x and y = 0.5x will be shaded fully and fractionally based on each country's consumption/generation of renewables by method. y = x represent the gdp per capita regression. The angle from the bottom line of the slice to the gdp per capita regression will represent a "score". This is how we will find the countries that are the best at utilizing their gdp per capita to increase renewable energy generation/consumption.
+
+# Visualization
+
+Since the full visualizations for this project will involve lots of regression analysis, advanced visualizations, and more, I will provide an example using the consumption of renewables by the US. I will present the line graphs of all methods and provide simple linear regression. I will then overlay the GDP per capita regression on a separate y-axis scale to best exemplify the data.
+
+```{r, echo=T}
+
+data_usa <- data1 %>%
+  filter(country == 'United States') %>%
+  select(country, year, population, gdp, gdp_per_capita, hydro_consumption, nuclear_consumption,other_renewable_consumption, renewables_consumption, solar_consumption, wind_consumption) %>%
+  drop_na() %>%
+  pivot_longer(cols = c('hydro_consumption':'wind_consumption'),
+               names_to = 'methods',
+               values_to = 'consumption')
+
+consumption_usa <- ggplot(data_usa, aes(x = year)) +
+  geom_line(aes(y = consumption,
+                group = methods,
+                color = methods)) + 
+  geom_line(aes(y = gdp_per_capita))
+
+
+consumption_usa
+
+```
+
+There are clearly issues that need to be addressed with the following graph including y-scaling for the consumption unit (Kilowatt Hours) & gdp per capita (Dollars \$). On top of this, each of these lines will be regressed, as stated above, which will allow to outline our slices and create the proper visualization as well as to allow us to measure the "score" for each country.
