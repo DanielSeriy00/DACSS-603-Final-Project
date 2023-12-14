@@ -171,33 +171,6 @@ plot(plot_model_3_cons, main = "Model #3 - Consumption", sub = "Renewable Consum
 ```
 
 
-
-
-
-```{r, echo = T}
-
-```
-
-```{r, echo = T}
-
-```
-
-```{r, echo = T}
-
-```
-
-```{r, echo = T}
-
-```
-
-```{r, echo = T}
-
-```
-
-```{r, echo = T}
-
-```
-
 # Discussion
 
 ## GDP per Capita
