@@ -1,0 +1,252 @@
+---
+title: "DACSS 603 - Final Project Check-In #2"
+author: "Daniel Seriy"
+format: 
+  html: 
+    embed-resources: true
+    self-contained-math: true
+---
+
+# Research Question
+
+## Question 1
+
+Does GDP have a positive effect on renewable energy generation/consumption?
+
+## Question 2
+
+Does Nuclear energy generation/consumption affect renewabole energy and GDP per capita’s effect?
+
+
+# Hypothesis
+
+## Hypothesis 1
+
+Null: GDP per Capita has no effect on renewable generation/consumption
+Alternative: As GDP per Capita increases, renewable generation/consumption increases
+
+## Hypothesis 2
+
+Null: Nuclear consumption/generation has no effect on renewable generation/consumption
+Alternative: Nuclear consumption/generation has a positive effect on renewable consumption/generation
+
+
+# Read in Packages
+
+```{r, echo = T}
+
+library(ggplot2)
+library(stats)
+library(dplyr)
+library(stargazer)
+library(effects)
+
+```
+
+# Read in Data
+
+```{r, echo = T}
+
+data <- read.csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-06-06/owid-energy.csv')
+
+```
+
+# Manipulate Data
+
+```{r, echo = T}
+
+data1 <- data %>%
+  mutate(gdp_per_capita = gdp/population) %>%
+  na.omit()
+
+View(data1)
+
+```
+
+# Linear Models - Generation
+
+## Model Creation
+
+```{r, echo = T}
+
+lm_generation_1 <- lm(renewables_electricity ~ gdp_per_capita, data = data1)
+summary(lm_generation_1)
+
+lm_generation_2 <- lm(renewables_electricity ~ gdp_per_capita + nuclear_electricity, data = data1)
+summary(lm_generation_2)
+
+lm_generation_3 <- lm(renewables_electricity ~ gdp_per_capita * nuclear_electricity, data = data1)
+summary(lm_generation_3)
+
+stargazer(lm_generation_1, lm_generation_2, lm_generation_3, type = "text")
+
+```
+
+## Visualizations - Generation
+
+### Model 1
+
+```{r, echo = T}
+
+plot(x = data1$gdp_per_capita, y = data1$renewables_electricity,
+     main = "Model #1 - Generation", sub = "Renewable Generation ~ GDP per Capita",
+     xlab = "GDP per Capita (USD)", ylab = "Renewable Generation (TWH)")
+abline(lm_generation_1, col = "red", lwd = 5)
+
+```
+
+### Model 2
+
+```{r, echo = T}
+
+plot(x = data1$gdp_per_capita + data1$nuclear_electricity, y = data1$renewables_electricity,
+     main = "Model #2 - Generation", sub = "Renewable Generation ~ GDP per Capita + Nuclear Generation",
+     xlab = "GDP per Capita (USD)", ylab = "Renewable Generation (TWH)")
+abline(lm_generation_2, col = "red", lwd = 5)
+     
+```
+
+### Model 3
+
+```{r, echo = T}
+
+plot_model_3_gen <- predictorEffect("gdp_per_capita", lm_generation_3)
+as.data.frame(plot_model_3_gen)
+plot(plot_model_3_gen, main = "Model #3 - Generation", sub = "Renewable Generation ~ GDP per Capita * Nuclear Generation",
+     xlab = "GDP per Capita (USD)", ylab = "Renewable Generation (TWH)")
+
+```
+
+# Linear Models - Consumption
+
+## Model Creation
+
+```{r, echo = T}
+
+lm_consumption_1 <- lm(renewables_consumption ~ gdp_per_capita, data = data1)
+summary(lm_consumption_1)
+
+lm_consumption_2 <- lm(renewables_consumption ~ gdp_per_capita + nuclear_consumption, data = data1)
+summary(lm_consumption_2)
+
+lm_consumption_3 <- lm(renewables_consumption ~ gdp_per_capita * nuclear_consumption, data = data1)
+summary(lm_consumption_3)
+
+stargazer(lm_consumption_1, lm_consumption_2, lm_consumption_3, type = "text")
+
+```
+
+## Visualizations - Consumption
+
+### Model 1
+
+```{r, echo = T}
+
+plot(x = data1$gdp_per_capita, y = data1$renewables_consumption,
+     main = "Model #1 - Consumption", sub = "Renewable Consumption ~ GDP per Capita",
+     xlab = "GDP per Capita (USD)", ylab = "Renewable Consumption (TWH)")
+abline(lm_consumption_1, col = "red", lwd = 5)
+
+```
+
+### Model 2
+
+```{r, echo = T}
+
+plot(x = data1$gdp_per_capita + data1$nuclear_consumption, y = data1$renewables_consumption,
+     main = "Model #2 - Consumption", sub = "Renewable Consumption ~ GDP per Capita + Nuclear Generation",
+     xlab = "GDP per Capita (USD)", ylab = "Renewable Generation (TWH)")
+abline(lm_consumption_2, col = "red", lwd = 5)
+
+```
+
+### Model 3
+
+```{r, echo = T}
+
+plot_model_3_cons <- predictorEffect("gdp_per_capita", lm_consumption_3)
+as.data.frame(plot_model_3_cons)
+plot(plot_model_3_cons, main = "Model #3 - Consumption", sub = "Renewable Consumption ~ GDP per Capita * Nuclear Consumption",
+     xlab = "GDP per Capita (USD)", ylab = "Renewable Consumption (TWH)")
+```
+
+
+
+
+
+```{r, echo = T}
+
+```
+
+```{r, echo = T}
+
+```
+
+```{r, echo = T}
+
+```
+
+```{r, echo = T}
+
+```
+
+```{r, echo = T}
+
+```
+
+```{r, echo = T}
+
+```
+
+# Discussion
+
+## GDP per Capita
+
+### Generation
+
+As GDP per Capita increases, so does renewable energy generation (Coef = 0.008). As well, the model is statistically significant (p-value = 0.001).
+
+### Consumption
+
+Consumption shows similar results to the Generation results, but the relationship between GDP per Capita and Renewable consumption is higher, but with a lower statistical significance.
+
+Coef = 0.027, p-value = 0.004
+
+
+## GDP per Capita + Nuclear
+
+### Generation
+
+The addition of Nuclear energy maintains the existing relationship between GDP per Capita and renewable generation.
+
+Coef = 0.004, p-value =0.258
+
+Nuclear generation shows positive relationship with renewable generation
+
+Coef = 0.258 , p-value = 0.067
+
+### Consumption
+
+presents similar results as generation, but a stronger relationship for both explanatory variables.
+
+GDP Per Capita
+Coef = 0.012, p-value = 0.005
+
+Nuclear consumption
+Coef = 0.356, p-value = 0.074 
+
+## GDP per Capita * Nuclear
+
+In both cases, as nuclear consumption/generation increases, there is a positive effect on the growth of GDP per Capita’s effect on renewable consumption/generation.
+
+# Conclusion
+
+We will reject the null hypothesis due to their being an effect by our explanatory variable for both Hypotheses.
+
+## Hypothesis #1
+
+Hypothesis is correct if only taking GDP per Capita into account in model.
+
+## Hypothesis #2
+
+Hypothesis is correct. Nuclear has positive relationship and effect on renewable energy.
